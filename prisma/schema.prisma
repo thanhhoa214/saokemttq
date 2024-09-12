@@ -1,14 +1,26 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql" // Adjust this if using another database like MySQL, SQLite, etc.
   url      = env("DATABASE_URL")
+}
+
+model Transaction {
+  id           Int      @id @default(autoincrement())
+  date         DateTime // Transaction date
+  docNumber    String   @unique // Document number for transaction identification
+  debitAmount  Float? // Amount debited
+  creditAmount Float? // Amount credited
+  balance      Float // Balance after transaction
+  description  String // Detailed transaction information
+  createdAt    DateTime @default(now()) // Record creation time
+  updatedAt    DateTime @updatedAt // Record update time
+
+  @@index([date]) // Indexing the date field for efficient querying
+  @@index([docNumber]) // Indexing the document number for uniqueness
+  @@index([debitAmount, creditAmount]) // Combined index for efficient filtering
 }

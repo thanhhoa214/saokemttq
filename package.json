@@ -6,16 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "insert-transactions": "ts-node scripts/insertTransactions.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",
     "next": "14.2.11",
+    "pdf-parse": "^1.1.1",
     "react": "^18",
     "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pdf-parse": "^1.1.4",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",
