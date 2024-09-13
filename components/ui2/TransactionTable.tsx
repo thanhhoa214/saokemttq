@@ -66,7 +66,7 @@ export default function TransactionTable({
   return (
     <>
       <Sheet>
-        <SheetTrigger>
+        <SheetTrigger asChild>
           <Button
             size={"icon"}
             className="fixed bottom-4 right-4 md:hidden z-50"

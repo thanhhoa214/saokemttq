@@ -8,14 +8,10 @@ import {
 import { formatDdMmYyyy, formatVnd } from "@/lib/utils";
 import { Transaction } from "@prisma/client";
 import { useCallback } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
-import "react-pdf/dist/Page/TextLayer.css";
-import { useWindowSize } from "usehooks-ts";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+import dynamic from "next/dynamic";
+
+const PDFViewer = dynamic(() => import("./PDFViewer"), { ssr: false });
 
 function highlightPattern(text: string, patterns: string[]) {
   let result = text;
@@ -47,7 +43,6 @@ const TransactionDetail: React.FC<TransactionDetailProps> = ({
       ),
     [selectedTransaction]
   );
-  const { width } = useWindowSize();
 
   return (
     <Dialog
@@ -73,13 +68,10 @@ const TransactionDetail: React.FC<TransactionDetailProps> = ({
               <p>{selectedTransaction.pageNumber}</p>
             </div>
             <div className="bg-gray-200 p-2 rounded max-h-80 max-w-[32rem] overflow-auto md:w-2/3">
-              <Document file="/all.pdf">
-                <Page
-                  pageNumber={selectedTransaction.pageNumber}
-                  customTextRenderer={textRenderer}
-                  width={width > 768 ? 800 : width * 0.8}
-                />
-              </Document>
+              <PDFViewer
+                textRenderer={textRenderer}
+                pageNumber={selectedTransaction.pageNumber}
+              />
             </div>
           </div>
         )}
