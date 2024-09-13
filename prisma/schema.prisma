@@ -14,14 +14,13 @@ model Transaction {
   id           Int      @id @default(autoincrement())
   date         DateTime // Transaction date
   docNumber    String   @unique // Document number for transaction identification
-  debitAmount  Float? // Amount debited
-  creditAmount Float? // Amount credited
-  balance      Float // Balance after transaction
+  creditAmount Float // Amount credited
   description  String // Detailed transaction information
+  pageNumber   Int // Page number in the ledger
   createdAt    DateTime @default(now()) // Record creation time
   updatedAt    DateTime @updatedAt // Record update time
 
   @@index([date]) // Indexing the date field for efficient querying
   @@index([docNumber]) // Indexing the document number for uniqueness
-  @@index([debitAmount, creditAmount]) // Combined index for efficient filtering
+  @@index([creditAmount]) // Combined index for efficient filtering
 }
