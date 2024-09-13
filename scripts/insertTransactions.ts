@@ -1,10 +1,7 @@
-// scripts/insertTransactions.ts
 import { Prisma, PrismaClient } from "@prisma/client";
 import { isValid, isWithinInterval, parse } from "date-fns";
 import fs from "fs";
 import pdfParse from "pdf-parse";
-
-const prisma = new PrismaClient();
 
 // Function to clean and extract relevant transaction lines from the PDF content
 function cleanExtractedText(text: string): string[] {
@@ -22,6 +19,7 @@ function cleanExtractedText(text: string): string[] {
 
     // Stop capturing transaction lines before footer
     if (line.includes("Page")) {
+      filteredLines.push(line);
       isTransactionSection = false;
     }
 
@@ -32,10 +30,13 @@ function cleanExtractedText(text: string): string[] {
   return filteredLines;
 }
 
-function extractTransactions(
-  line: string
+function lineToTx(
+  line: string,
+  pageNumber: number
 ): Prisma.TransactionCreateInput | null {
   const [date, docNumber, ...rest] = line.split(" ").map((l) => l.trim());
+  if (!isDateInRange(date)) return null;
+
   let restString = rest.join(" ").trim();
   let creditAmount = 0;
   // 50.000292976.010924.013647.xin cam on
@@ -50,44 +51,25 @@ function extractTransactions(
 
   // Loop to determine the length of the credit amount, 4. ~ 1.000.000.000.000 is enough
   for (let i = 0; i <= 4; i++) {
-    const jump = i * 4;
-    if (restString[firstDotIndex + jump] !== ".") {
+    const nextDotLoc = firstDotIndex + i * 4;
+    if (restString[nextDotLoc] !== ".") {
       creditAmount = parseInt(
-        restString.slice(0, firstDotIndex + jump).replaceAll(".", "")
+        restString.slice(0, nextDotLoc).replaceAll(".", "")
       );
-      restString = restString.slice(firstDotIndex + i).trim();
+      restString = restString.slice(nextDotLoc).trim();
       break;
     }
   }
 
+  const [dd, MM, yyyy] = date.split("/");
+
   return {
-    date,
+    date: new Date(`${yyyy}-${MM}-${dd}`).toISOString(),
     docNumber,
     creditAmount,
     description: restString,
+    pageNumber,
   };
-}
-
-// Function to parse and extract transactions from cleaned text
-async function extractTransactionsFromPDF(filePath: string) {
-  try {
-    const pdfBuffer = fs.readFileSync(filePath);
-    const data = await pdfParse(pdfBuffer);
-    const text = data.text;
-
-    // Clean the extracted text to focus only on the transaction lines
-    const lines = cleanExtractedText(text);
-    const transactionLines = processTxToEachLine(lines);
-    const parsedTransactions = transactionLines.map((l) => {
-      const tx = extractTransactions(l);
-      if (tx) return tx;
-      console.log("Failed to parse transaction:", l);
-    });
-    fs.writeFileSync("txs.json", JSON.stringify(parsedTransactions));
-  } catch (error) {
-    console.error("Error reading PDF:", error);
-    return [];
-  }
 }
 
 function isDateInRange(dateString: string): boolean {
@@ -105,43 +87,67 @@ function isDateInRange(dateString: string): boolean {
   );
 }
 
-function processTxToEachLine(lines: string[]) {
-  // check the whole line is a correct date in format dd/MM/yyyy by using date-fns
-  // if not, append this line to the previous line
-  // if yes, start a new transaction
-  const txLines: string[] = [];
+function linesToTxs(lines: string[]) {
+  const txLines: { line: string; pageNumber: number }[] = [];
+
   const dateLineIndices = lines
     .map((line, index) => {
       if (isDateInRange(line)) return index;
+      if (line.includes("Page")) {
+        const pageMatch = line.match(/Page (\d+)/);
+        if (pageMatch) return { index, pageNumber: parseInt(pageMatch[1]) };
+      }
     })
-    .filter((v) => v !== undefined) as number[];
+    .filter((v) => v !== undefined);
 
+  let currentPageNumber = 1;
   for (let i = 0; i < dateLineIndices.length; i++) {
     const start = dateLineIndices[i];
     const end = dateLineIndices[i + 1];
-    if (end) {
-      txLines.push(lines.slice(start, end).join(" "));
+
+    if (typeof start === "object") continue;
+    if (typeof end === "object") {
+      txLines.push({
+        line: lines.slice(start, end.index).join(" "),
+        pageNumber: currentPageNumber,
+      });
+      currentPageNumber = end.pageNumber + 1;
     } else {
-      txLines.push(lines.slice(start).join(" "));
+      if (end) {
+        txLines.push({
+          line: lines.slice(start, end).join(" "),
+          pageNumber: currentPageNumber,
+        });
+      } else {
+        txLines.push({
+          line: lines.slice(start).join(" "),
+          pageNumber: currentPageNumber,
+        });
+      }
     }
   }
-  return txLines;
+
+  return txLines.map(({ line, pageNumber }) => {
+    const tx = lineToTx(line, pageNumber);
+    if (!tx) console.error(`Failed to parse: ${line}`);
+    return tx;
+  });
 }
 
 // Main function to read the PDF and insert transactions
 async function main() {
-  const filePath = `first100.pdf`; // Update with your actual PDF file path
-  const transactions = await extractTransactionsFromPDF(filePath);
-  console.log(transactions);
-
-  // if (transactions.length > 0) {
-  //   await insertTransactions(transactions);
-  //   console.log("Transactions inserted successfully!");
-  // } else {
-  //   console.log("No transactions found or failed to parse.");
-  // }
-
-  // await prisma.$disconnect();
+  const prisma = new PrismaClient();
+  const filePath = `all.pdf`; // Update with your actual PDF file path
+  const pdfBuffer = fs.readFileSync(filePath);
+  const data = await pdfParse(pdfBuffer);
+  const text = data.text;
+  const lines = cleanExtractedText(text);
+  const transactionLines = linesToTxs(lines).filter((tx) => tx !== null);
+  const { count } = await prisma.transaction.createMany({
+    data: transactionLines,
+  });
+  console.log(`Inserted ${count} transactions`);
+  await prisma.$disconnect();
 }
 
 main().catch((error) => {

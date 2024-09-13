@@ -13,7 +13,7 @@ datasource db {
 model Transaction {
   id           Int      @id @default(autoincrement())
   date         DateTime // Transaction date
-  docNumber    String   @unique // Document number for transaction identification
+  docNumber    String // Document number for transaction identification
   creditAmount Float // Amount credited
   description  String // Detailed transaction information
   pageNumber   Int // Page number in the ledger
@@ -21,6 +21,5 @@ model Transaction {
   updatedAt    DateTime @updatedAt // Record update time
 
   @@index([date]) // Indexing the date field for efficient querying
-  @@index([docNumber]) // Indexing the document number for uniqueness
   @@index([creditAmount]) // Combined index for efficient filtering
 }
