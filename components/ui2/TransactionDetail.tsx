@@ -49,7 +49,7 @@ const TransactionDetail: React.FC<TransactionDetailProps> = ({
       open={!!selectedTransaction}
       onOpenChange={() => setSelectedTransaction(null)}
     >
-      <DialogContent className="max-w-4xl overflow-auto max-h-[92vh]">
+      <DialogContent className="max-w-4xl overflow-hidden max-h-[92vh]">
         <DialogHeader>
           <DialogTitle>Sao kê chi tiết giao dịch</DialogTitle>
         </DialogHeader>
@@ -67,7 +67,7 @@ const TransactionDetail: React.FC<TransactionDetailProps> = ({
               <h3 className="font-bold mt-2">Page Number:</h3>
               <p>{selectedTransaction.pageNumber}</p>
             </div>
-            <div className="bg-gray-200 p-2 rounded max-h-80 max-w-[32rem] overflow-auto md:w-2/3">
+            <div className="bg-gray-200 p-2 rounded max-h-[80vh] max-w-[34rem] overflow-auto w-fit">
               <PDFViewer
                 textRenderer={textRenderer}
                 pageNumber={selectedTransaction.pageNumber}
