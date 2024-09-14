@@ -14,18 +14,19 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { formatVnd } from "@/lib/utils";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 // Convert to K, M, B
 function convertNumberToShortString(num: number) {
   if (num >= 1_000_000_000) {
-    return `${(num / 1_000_000_000).toFixed(1)}B`;
+    return `${(num / 1_000_000_000).toFixed(0)}B`;
   }
   if (num >= 1_000_000) {
-    return `${(num / 1_000_000).toFixed(1)}M`;
+    return `${(num / 1_000_000).toFixed(0)}M`;
   }
   if (num >= 1_000) {
-    return `${(num / 1_000).toFixed(1)}K`;
+    return `${(num / 1_000).toFixed(0)}K`;
   }
   return num.toString();
 }
@@ -68,6 +69,7 @@ export function TransactionStatisticByAmount({
               tickMargin={10}
               axisLine={false}
               tickCount={4}
+              tickFormatter={formatVnd}
             />
             <ChartTooltip
               cursor={false}

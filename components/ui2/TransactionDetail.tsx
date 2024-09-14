@@ -69,7 +69,7 @@ const TransactionDetail: React.FC<TransactionDetailProps> = ({
             </div>
             <div className="bg-gray-200 p-2 rounded max-h-[80vh] max-w-[34rem] overflow-auto w-fit">
               {selectedTransaction.bank === "VietinBank" && (
-                <p>
+                <p className="text-xs mb-1 text-muted-foreground">
                   Hiện tại có vài sai sót tra cứu ở trang 998. Mong bạn thông
                   cảm!
                 </p>

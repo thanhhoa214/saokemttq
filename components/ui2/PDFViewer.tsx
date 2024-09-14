@@ -1,4 +1,5 @@
 "use client";
+import { Loader2 } from "lucide-react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -20,12 +21,13 @@ export default function PDFViewer({
   const calculatedHeight = calculatedWidth * 1.414;
 
   return (
-    <Document file={filePath}>
+    <Document file={filePath} loading={<Loader2 className="animate-spin" />}>
       <Page
         pageNumber={pageNumber}
         customTextRenderer={textRenderer}
         width={calculatedWidth}
         height={calculatedHeight}
+        loading={<Loader2 className="animate-spin" />}
       />
     </Document>
   );

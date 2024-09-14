@@ -15,19 +15,21 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 
 export default function TransactionFilter({
+  filter,
   onFilterChange,
   totalCount,
   children,
 }: {
+  filter: FilterTransactionsParams;
   onFilterChange: (filterParams: FilterTransactionsParams) => void;
   totalCount: number;
   children: React.ReactNode;
 }) {
-  const [nameFilter, setNameFilter] = useState("");
-  const [amount, setAmount] = useState<number>();
+  const [nameFilter, setNameFilter] = useState(filter.nameFilter || "");
+  const [amount, setAmount] = useState(filter.amount);
   const [sortConfig, setSortConfig] = useState<
     FilterTransactionsParams["sortConfig"]
-  >({ key: "date", direction: "asc" });
+  >(filter.sortConfig);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

@@ -13,9 +13,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import TransactionDetail from "@/components/ui2/TransactionDetail";
-import { formatDdMmYyyy, formatVnd } from "@/lib/utils";
-import { Transaction } from "@prisma/client";
+import { formatVnd } from "@/lib/utils";
+import { Bank, Transaction } from "@prisma/client";
+import { format } from "date-fns";
 import { ArrowRight, Settings } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
@@ -27,6 +29,11 @@ const highlightFilter = (text: string, filter: string) => {
     new RegExp(filter, "gi"),
     (match) => `<mark>${match}</mark>`
   );
+};
+
+const bankImageMap = {
+  [Bank.VCB]: "vcb.jpeg",
+  [Bank.VietinBank]: "vietinbank.png",
 };
 
 export default function TransactionTable({
@@ -49,9 +56,11 @@ export default function TransactionTable({
     currentPage: 1,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [sheetOpened, setSheetOpened] = useState(false);
 
   useEffect(() => {
     (async () => {
+      setSheetOpened(false);
       setIsLoading(true);
       const result = await filterTransactions({ ...filter });
       setTransactions(result);
@@ -65,7 +74,7 @@ export default function TransactionTable({
 
   return (
     <>
-      <Sheet>
+      <Sheet open={sheetOpened} onOpenChange={setSheetOpened}>
         <SheetTrigger asChild>
           <Button
             size={"icon"}
@@ -75,41 +84,50 @@ export default function TransactionTable({
           </Button>
         </SheetTrigger>
         <SheetContent side="bottom">
-          <TransactionFilter onFilterChange={setFilter} totalCount={totalCount}>
+          <TransactionFilter
+            filter={filter}
+            onFilterChange={setFilter}
+            totalCount={totalCount}
+          >
             {children}
           </TransactionFilter>
         </SheetContent>
       </Sheet>
       <div className="flex">
         <div className="hidden md:block w-1/4 space-y-4 pr-4 border-r sticky top-0 left-0">
-          <TransactionFilter onFilterChange={setFilter} totalCount={totalCount}>
+          <TransactionFilter
+            filter={filter}
+            onFilterChange={setFilter}
+            totalCount={totalCount}
+          >
             {children}
           </TransactionFilter>
         </div>
-        <div className="md:w-3/4 md:pl-4 max-w-full overflow-auto">
+        <div className="md:w-3/4 md:pl-4 w-full max-w-full overflow-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-36">Ngày</TableHead>
+                <TableHead className="w-12">Ngày</TableHead>
                 <TableHead className="min-w-24 md:min-w-36 text-right">
                   Số tiền quyên góp
                 </TableHead>
                 <TableHead>Nội dung chi tiết</TableHead>
-                <TableHead>Trang</TableHead>
+                <TableHead>NH</TableHead>
+                <TableHead className="text-right">Trang</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 10 }).map((_, index) => (
                   <TableRow key={index}>
-                    <TableCell colSpan={4} className="text-center">
+                    <TableCell colSpan={5} className="text-center">
                       <Skeleton className="w-full h-6" />
                     </TableCell>
                   </TableRow>
                 ))
               ) : transactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">
+                  <TableCell colSpan={5} className="text-center">
                     Không có kết quả nào
                   </TableCell>
                 </TableRow>
@@ -120,7 +138,7 @@ export default function TransactionTable({
                     onClick={() => setSelectedTransaction(transaction)}
                     className="cursor-pointer hover:bg-gray-100"
                   >
-                    <TableCell>{formatDdMmYyyy(transaction.date)}</TableCell>
+                    <TableCell>{format(transaction.date, "dd/MM")}</TableCell>
                     <TableCell className="text-right">
                       {formatVnd(transaction.creditAmount)}
                     </TableCell>
@@ -136,19 +154,32 @@ export default function TransactionTable({
                         }}
                       />
                     </TableCell>
-                    <TableCell>{transaction.pageNumber}</TableCell>
+                    <TableCell>
+                      <Image
+                        src={`/images/bank/${bankImageMap[transaction.bank]}`}
+                        alt={transaction.bank}
+                        width={20}
+                        height={20}
+                        className="rounded-full"
+                      />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatVnd(transaction.pageNumber)}
+                    </TableCell>
                   </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
-          <Button
-            onClick={loadMore}
-            className="my-4 ml-auto"
-            disabled={isLoading}
-          >
-            Trang kế tiếp <ArrowRight size={16} className="ml-1" />
-          </Button>
+          {transactions.length === 20 && (
+            <Button
+              onClick={loadMore}
+              className="my-4 ml-auto"
+              disabled={isLoading}
+            >
+              Trang kế tiếp <ArrowRight size={16} className="ml-1" />
+            </Button>
+          )}
         </div>
       </div>
       <TransactionDetail

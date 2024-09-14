@@ -14,6 +14,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { formatVnd } from "@/lib/utils";
 import { format } from "date-fns";
 import {
   Bar,
@@ -33,6 +34,7 @@ export function TransactionStatisticByDate({
     month: format(item.date, "dd/MM"),
     desktop: item._count._all,
   }));
+  const [firstDate, lastDate] = [chartData[0].month, chartData.at(-1)?.month];
   const chartConfig = {
     desktop: { label: "Số lượng giao dịch", color: "hsl(var(--chart-1))" },
   } satisfies ChartConfig;
@@ -41,7 +43,11 @@ export function TransactionStatisticByDate({
     <Card className="md:w-1/2">
       <CardHeader>
         <CardTitle>Số lượng giao dịch trên ngày</CardTitle>
-        <CardDescription>01/09/2024 - 10/09/2024</CardDescription>
+        {chartData && (
+          <CardDescription>
+            {firstDate} - {lastDate}
+          </CardDescription>
+        )}
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
@@ -60,6 +66,7 @@ export function TransactionStatisticByDate({
               tickMargin={10}
               axisLine={false}
               tickCount={4}
+              tickFormatter={formatVnd}
             />
             <ChartTooltip
               cursor={false}
@@ -71,6 +78,7 @@ export function TransactionStatisticByDate({
                 offset={8}
                 fontSize={12}
                 className="fill-foreground"
+                formatter={formatVnd}
               />
             </Bar>
           </BarChart>
