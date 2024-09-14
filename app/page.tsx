@@ -17,7 +17,7 @@ export default async function Page() {
 
   return (
     <div className="container mx-auto p-4 sm:px-2">
-      <header className="flex justify-between items-center gap-2">
+      <header className="flex justify-between items-center gap-2 mb-2">
         <div>
           <h1 className="text-xl md:text-2xl font-bold">Check VAR 🧙</h1>
           <p className="text-muted-foreground text-xs md:text-sm">
