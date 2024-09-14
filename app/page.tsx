@@ -21,11 +21,11 @@ export default async function Page() {
         <div>
           <h1 className="text-xl md:text-2xl font-bold">Check VAR 🧙</h1>
           <p className="text-muted-foreground text-xs md:text-sm">
-            Sao kê tài khoản VCB &quot;MAT TRAN TO QUOC VN - BAN CUU TRO
-            TW&quot;
+            Sao kê tài khoản &quot;MAT TRAN TO QUOC VN - BAN CUU TRO TW&quot;
           </p>
           <p className="text-muted-foreground text-xs md:text-sm">
-            Từ ngày 01/09/2024 đến 10/09/2024
+            Từ ngày 01/09/2024 đến 10/09/2024 (VCB) và 10/09/2024 đến 12/09/2024
+            (VietinBank)
           </p>
         </div>
 

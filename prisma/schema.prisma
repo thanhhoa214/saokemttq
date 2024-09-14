@@ -13,13 +13,20 @@ datasource db {
 model Transaction {
   id           Int      @id @default(autoincrement())
   date         DateTime // Transaction date
+  time         String? // Time only
   docNumber    String // Document number for transaction identification
   creditAmount Float // Amount credited
   description  String // Detailed transaction information
   pageNumber   Int // Page number in the ledger
   createdAt    DateTime @default(now()) // Record creation time
   updatedAt    DateTime @updatedAt // Record update time
+  bank         Bank     @default(VCB) // Bank involved in the transaction
 
   @@index([date]) // Indexing the date field for efficient querying
   @@index([creditAmount]) // Combined index for efficient filtering
+}
+
+enum Bank {
+  VCB
+  VietinBank
 }

@@ -7,9 +7,11 @@ import { useWindowSize } from "usehooks-ts";
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 export default function PDFViewer({
-  textRenderer,
+  filePath,
   pageNumber,
+  textRenderer,
 }: {
+  filePath: string;
   pageNumber: number;
   textRenderer: (textItem: { str: string }) => string;
 }) {
@@ -18,7 +20,7 @@ export default function PDFViewer({
   const calculatedHeight = calculatedWidth * 1.414;
 
   return (
-    <Document file="/all.pdf">
+    <Document file={filePath}>
       <Page
         pageNumber={pageNumber}
         customTextRenderer={textRenderer}
